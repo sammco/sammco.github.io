@@ -50,16 +50,16 @@ nav a:hover,nav a:active,nav a:focus-visible{color:#fff;text-shadow:0 0 3px rgba
 .about .w.lit{color:var(--k)}
 
 .games{background:var(--k);color:var(--w);padding-bottom:12vh}
-.games h2{font-family:'Fredoka',sans-serif;font-weight:600;font-size:clamp(2.4rem,6vw,5rem);padding:10vh 28px 5vh}
-.row{display:grid;grid-template-columns:1.6fr 1fr auto;align-items:center;gap:20px;padding:34px 28px;border-top:2px solid #333;text-decoration:none;transition:background .35s,color .35s,padding .4s cubic-bezier(.2,.8,.2,1)}
+.games h2{font-family:'Fredoka',sans-serif;font-weight:600;font-size:clamp(2.4rem,6vw,5rem);padding:10vh 28px 5vh;text-align:center}
+.row{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:44px 28px;border-top:2px solid #333;text-decoration:none;transition:background .35s,color .35s}
 .row:last-child{border-bottom:2px solid #333}
 .row h3{font-weight:700;font-size:clamp(1.3rem,3vw,2.4rem);letter-spacing:-.02em;line-height:1.25}
 .row small{display:block;font-weight:400;font-size:.95rem;letter-spacing:0;color:var(--g3);margin-top:6px;transition:color .35s}
-.tag{justify-self:start;border:2px solid currentColor;border-radius:99px;padding:3px 16px;font-family:'Fredoka',sans-serif;font-size:.9rem;font-weight:600}
+.tag{border:2px solid currentColor;border-radius:99px;padding:3px 16px;font-family:'Fredoka',sans-serif;font-size:.9rem;font-weight:600}
 .go{font-family:'Fredoka',sans-serif;font-weight:600}
-.row:hover,.row:focus-visible{background:var(--lav);color:var(--k);padding-left:56px}
+.row:hover,.row:focus-visible{background:var(--lav);color:var(--k)}
+.go:empty{display:none}
 .row:hover small{color:#444}
-@media(max-width:700px){.row{grid-template-columns:1fr;gap:10px}.row:hover{padding-left:28px}}
 
 footer{padding:16vh 28px 50px;position:relative;min-height:70vh;display:flex;flex-direction:column;justify-content:space-between}
 footer a.mail{font-family:'Fredoka',sans-serif;font-weight:600;font-size:clamp(1.6rem,6vw,5rem);text-decoration:none;word-break:break-all;line-height:1.15;transition:color .3s}
