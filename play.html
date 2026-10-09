@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAY | SAMMCO 삼코</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --k:#111;--g3:#8a8a8a;--lav:#cdbcf5;--lav2:#a98bea;
+  --bezel:26px;          /* 모니터 테두리 두께: 스킨이 바뀌어도 이 값은 고정이에요 */
+  --adw:160px;           /* 광고 칸 가로 */
+  --mindist:160px;       /* 게임 창 가장자리 ~ 광고 사이 최소 거리 (AdSense 권고 150px + 여유 10px) */
+  --gw:min(640px,calc(100vw - 52px));--gh:calc(var(--gw) * .5625); /* 게임 창 크기 (자바스크립트가 화면에 맞춰 다시 계산) */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:#fff linear-gradient(#bba5ef 0,#e6dcfa 420px,#fff 800px) top/100% 800px no-repeat;color:var(--k);font-family:'Noto Sans KR',system-ui,sans-serif;line-height:1.6;overflow-x:hidden}
+a{color:inherit}
+::selection{background:var(--lav)}
+:focus-visible{outline:3px solid var(--lav2);outline-offset:3px}
+
+/* 커서 */
+.cur{position:fixed;left:0;top:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--k);border:2px solid #fff;pointer-events:none;z-index:99;transition:width .3s,height .3s,margin .3s,background .3s,opacity .3s,border-color .3s}
+.cur.hov{width:70px;height:70px;margin:-35px 0 0 -35px;background:var(--lav);border-color:transparent;opacity:.75}
+.cur.hide{opacity:0}
+@media (hover:hover){body,a,button{cursor:none}}
+@media (hover:none){.cur{display:none}}
+
+nav{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:14px 28px;z-index:10;background:rgba(255,255,255,.6);backdrop-filter:blur(10px);font-family:'Fredoka',sans-serif;font-weight:600;font-size:1.05rem}
+nav a{text-decoration:none;margin-left:26px;padding:2px 10px;color:var(--k);transition:color .25s,text-shadow .25s}
+nav a:first-child{margin-left:-10px}
+nav a:hover,nav a:active,nav a:focus-visible{color:#fff;text-shadow:0 0 3px rgba(112,82,205,.95),0 1px 8px rgba(112,82,205,.85)}
+
+/* 게임 영역: [광고] [간격] [모니터] [간격] [광고] */
+.hero{min-height:100svh;display:flex;align-items:center;justify-content:center;padding:84px 12px 36px}
+.row{display:flex;align-items:flex-start;justify-content:center;width:100%}
+.ad{display:none;flex:0 0 var(--adw);width:var(--adw);min-height:600px;position:sticky;top:84px}
+.ad .box{display:none;height:600px;border:2px dashed #b9b9c4;border-radius:14px;color:#8a8a98;font-size:.85rem;text-align:center;align-items:center;justify-content:center}
+.spacer{display:none;flex:0 0 calc(var(--mindist) - var(--bezel))}
+body.ads .ad,body.ads .spacer{display:block}
+body.adprev .ad .box{display:flex}
+
+.monitor{display:flex;flex-direction:column;align-items:center;min-width:0}
+/* 스킨은 .frame의 색이나 그림만 바꾸고, 바깥 두께(--bezel)는 바꾸지 않아요 */
+.frame{background:#e9e9ee;border:1px solid #cfcfd6;padding:var(--bezel);border-radius:calc(var(--bezel) * .8);box-shadow:0 18px 44px rgba(112,82,205,.22)}
+.screen{width:var(--gw);height:var(--gh);background:#111;border-radius:8px;overflow:hidden}
+.screen iframe{display:block;width:100%;height:100%;border:0;background:#111}
+.info{text-align:center;margin-top:20px;max-width:640px}
+.info h1{font-size:1.5rem;letter-spacing:-.02em;line-height:1.3}
+.info p{margin-top:4px;color:#666;font-size:.95rem}
+
+/* 휴대폰 가로: 게임이 화면을 채워요 */
+body[data-mode=phoneland] nav,body[data-mode=phoneland] .info{display:none}
+body[data-mode=phoneland] .hero{padding:0}
+body[data-mode=phoneland] .frame{padding:0;border:0;border-radius:0;background:none;box-shadow:none}
+body[data-mode=phoneland] .screen{border-radius:0}
+/* 휴대폰 세로 */
+
+body[data-mode=phoneport] .hero{padding:64px 6px 20px}
+body[data-mode=phoneport] .frame{border-radius:12px}
+
+/* 아래로 보기 버튼 (휴대폰 가로에서만) */
+#down{display:none;position:fixed;right:max(12px,env(safe-area-inset-right));bottom:12px;width:46px;height:46px;border-radius:50%;border:2px solid var(--k);background:rgba(205,188,245,.92);color:var(--k);font-size:18px;line-height:1;align-items:center;justify-content:center;z-index:20}
+#down.show{display:flex}
+
+/* 다른 게임 */
+#more{padding:8vh 24px 10vh;text-align:center}
+#more h2{font-family:'Fredoka',sans-serif;font-weight:600;font-size:clamp(1.6rem,4vw,2.4rem);margin-bottom:28px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;max-width:1000px;margin:0 auto}
+.gcard{display:block;text-decoration:none;background:#fff;border-radius:24px;overflow:hidden;text-align:left;box-shadow:0 12px 34px rgba(112,82,205,.16);transition:transform .35s,box-shadow .35s}
+.gcard:hover{transform:translateY(-5px);box-shadow:0 20px 44px rgba(112,82,205,.26)}
+.gcard .t{aspect-ratio:16/10;background:radial-gradient(circle at 28% 62%,#fff 0 17%,transparent 18%),radial-gradient(circle at 48% 50%,#fff 0 22%,transparent 23%),radial-gradient(circle at 70% 60%,#fff 0 17%,transparent 18%),linear-gradient(#cdbcf5,#e6dcfa)}
+.gcard .t img{width:100%;height:100%;object-fit:cover;display:block}
+.gcard .b{padding:16px 20px 20px}
+.gcard h3{font-size:1.1rem;line-height:1.3}
+.gcard p{margin-top:4px;color:#666;font-size:.9rem}
+.soon{grid-column:1/-1;color:#666}
+.pill{display:inline-block;margin-top:34px;border:2px solid var(--k);border-radius:99px;padding:8px 26px;font-family:'Fredoka','Noto Sans KR',sans-serif;font-weight:600;background:none;color:var(--k);font-size:1rem;transition:background .3s}
+.pill:hover{background:var(--lav)}
+body:not([data-mode=phoneland]) #up{display:none}
+
+/* 세로로 들고 있을 때 가로 게임이면 돌려달라는 안내 */
+#rotate{display:none;position:fixed;inset:0;z-index:50;background:linear-gradient(#bba5ef,#e6dcfa 60%,#fff);flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding:24px}
+body.rotate #rotate{display:flex}
+.phone{width:46px;height:78px;border:4px solid var(--k);border-radius:10px;background:#fff;animation:turn 2.6s ease-in-out infinite}
+@keyframes turn{0%,25%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+#rotate b{font-size:1.25rem}
+#rotate span{color:#444;font-size:.95rem}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body data-mode="desk">
+<div class="cur" id="cur"></div>
+
+<nav>
+  <a href="index.html">SAMMCO</a>
+  <div><a href="index.html">Home</a><a href="games.html">Web</a><a href="lab.html">Lab</a></div>
+</nav>
+
+<header class="hero" id="hero">
+  <div class="row">
+    <!-- AdSense 승인 후 SAMMCO_SITE.ads 를 true로 바꾸고, 광고 코드를 아래 두 칸에 붙이세요 -->
+    <aside class="ad" id="adL" aria-label="광고"><div class="box">광고 영역<br>160 × 600</div></aside>
+    <div class="spacer"></div>
+    <div class="monitor">
+      <div class="frame" id="frame">
+        <div class="screen" id="screen"><iframe id="game" title="게임 화면" allow="fullscreen; autoplay; gamepad; accelerometer" allowfullscreen></iframe></div>
+      </div>
+      
+      <div class="info"><h1 id="gtitle"></h1><p id="gdesc"></p></div>
+    </div>
+    <div class="spacer"></div>
+    <aside class="ad" id="adR" aria-label="광고"><div class="box">광고 영역<br>160 × 600</div></aside>
+  </div>
+</header>
+
+<button id="down" type="button" aria-label="다른 게임 보기">▼</button>
+
+<section id="more">
+  <h2>다른 게임</h2>
+  <div class="cards" id="cards"></div>
+  <button class="pill" id="up" type="button">게임으로 돌아가기</button>
+</section>
+
+<div id="rotate" role="alert">
+  <div class="phone"></div>
+  <b>화면을 가로로 돌려주세요</b>
+  <span>이 게임은 가로 화면에서 실행돼요.</span>
+</div>
+
+<script src="games-data.js"></script>
+<script>
+(function(){
+  var GAMES=window.SAMMCO_GAMES||[],SITE=window.SAMMCO_SITE||{},qs=new URLSearchParams(location.search);
+  var game=GAMES.filter(function(g){return g.id===qs.get('g')})[0]||GAMES[0];
+  var body=document.body,root=document.documentElement;
+  var cur=document.getElementById('cur'),down=document.getElementById('down');
+
+  if(!game){
+    document.getElementById('gtitle').textContent='게임을 찾을 수 없어요';
+    document.getElementById('screen').style.display='none';
+    return;
+  }
+
+  var rp=String(game.ratio||'16/9').split('/'),R=(+rp[0])/(+rp[1]);
+  if(!(R>0.2&&R<5))R=16/9;
+  document.title=game.title+' | SAMMCO 삼코';
+  document.getElementById('gtitle').textContent=game.title;
+  document.getElementById('gdesc').textContent=game.desc||'';
+  document.getElementById('game').src=game.url;
+
+  var adPrev=qs.get('ads')==='preview',want=!!SITE.ads||adPrev;
+
+  /* 화면 크기는 문서 기준(clientWidth)으로 재요. 내용이 넘치면 브라우저가 innerWidth를 키울 수 있어서요 */
+  function vpW(){return Math.min(innerWidth,root.clientWidth||innerWidth)}
+  function vpH(){return Math.min(innerHeight,root.clientHeight||innerHeight)}
+  function mode(){
+    var coarse=matchMedia('(pointer:coarse)').matches,land=vpW()>vpH();
+    if(coarse&&land&&vpH()<=520)return 'phoneland';
+    if(coarse&&!land&&vpW()<=700)return 'phoneport';
+    return 'desk';
+  }
+
+  /* 화면 크기에 맞춰 게임 창을 계산해요.
+     광고가 켜진 PC 화면에서는 한쪽에 (광고 160 + 간격 160 - 테두리 + 테두리) = 320px 이 필요해서
+     게임 창 가로 최대 = 화면 가로 - 666px 이에요. 600px 보다 작아지면 광고를 숨겨요. */
+  function layout(){
+    var m=mode(),vw=vpW(),vh=vpH(),bez,gw,gh,ads=false;
+    if(m==='phoneland'){
+      bez=0;gw=Math.min(vw,vh*R);gh=gw/R;
+    }else if(m==='phoneport'){
+      bez=6;gw=Math.min(vw-12-2*bez-2,(vh-84-2*bez)*R);gh=gw/R;
+    }else{
+      bez=26;
+      var availH=vh-84-110-2*bez-2,gwAds=vw-666;
+      ads=want&&gwAds>=600;
+      gw=Math.min(ads?gwAds:vw-26-2*bez,1100,availH*R);
+      if(gw<280)gw=Math.min(280,vw-26-2*bez);
+      gh=gw/R;
+    }
+    root.style.setProperty('--bezel',bez+'px');
+    root.style.setProperty('--gw',Math.floor(gw)+'px');
+    root.style.setProperty('--gh',Math.floor(gh)+'px');
+    body.dataset.mode=m;
+    body.classList.toggle('ads',ads);
+    body.classList.toggle('adprev',ads&&adPrev);
+    body.classList.toggle('rotate',m==='phoneport'&&game.orientation==='landscape');
+    onScroll();
+  }
+  function onScroll(){down.classList.toggle('show',body.dataset.mode==='phoneland'&&scrollY<30)}
+
+  /* 다른 게임 목록 (대표 이미지 카드만 보여주고, 누르면 그 게임이 열려요) */
+  var others=GAMES.filter(function(g){return g!==game}),cards=document.getElementById('cards');
+  if(!others.length){
+    cards.innerHTML='<p class="soon">곧 더 많은 게임이 올라와요.</p>';
+  }else others.forEach(function(g){
+    var a=document.createElement('a');a.className='gcard';a.href='play.html?g='+encodeURIComponent(g.id);
+    a.innerHTML='<div class="t"></div><div class="b"><h3></h3><p></p></div>';
+    a.querySelector('h3').textContent=g.title;a.querySelector('p').textContent=g.desc||'';
+    if(g.thumb){var im=document.createElement('img');im.alt='';im.loading='lazy';im.src=g.thumb;a.querySelector('.t').appendChild(im)}
+    cards.appendChild(a);
+  });
+
+  down.addEventListener('click',function(){document.getElementById('more').scrollIntoView({behavior:'smooth'})});
+  document.getElementById('up').addEventListener('click',function(){scrollTo({top:0,behavior:'smooth'})});
+  addEventListener('scroll',onScroll,{passive:true});
+  addEventListener('resize',layout);
+  addEventListener('orientationchange',function(){setTimeout(layout,200)});
+  layout();
+
+  /* 커서 */
+  addEventListener('pointermove',function(e){if(e.pointerType==='mouse')cur.style.transform='translate('+e.clientX+'px,'+e.clientY+'px)'});
+  document.querySelectorAll('a,button').forEach(function(el){
+    if(el.closest('nav'))return;
+    el.addEventListener('mouseenter',function(){cur.classList.add('hov')});
+    el.addEventListener('mouseleave',function(){cur.classList.remove('hov')});
+  });
+  var scr=document.getElementById('screen');   /* 게임 창 위에서는 게임이 자기 커서를 쓰도록 숨겨요 */
+  scr.addEventListener('mouseenter',function(){cur.classList.add('hide')});
+  scr.addEventListener('mouseleave',function(){cur.classList.remove('hide')});
+})();
+</script>
+</body>
+</html>

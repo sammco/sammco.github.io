@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PLAYER | SAMMCO 삼코</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--w:#fff;--k:#111;--g3:#8a8a8a;--lav:#cdbcf5;--lav2:#a98bea;--lav3:#7052cd}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:#fff linear-gradient(#bba5ef 0,#dcd0f8 420px,#fff 800px) top/100% 800px no-repeat;color:var(--k);font-family:'Noto Sans KR',system-ui,sans-serif;line-height:1.6;overflow-x:hidden}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--lav2);outline-offset:3px}
+.cur{position:fixed;left:0;top:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--k);border:2px solid #fff;pointer-events:none;z-index:99;transition:width .3s,height .3s,margin .3s,background .3s,opacity .3s}
+.cur.hov{width:70px;height:70px;margin:-35px 0 0 -35px;background:var(--lav);border-color:transparent;opacity:.75}
+@media (hover:hover){body,a,button,input,select,label{cursor:none}}
+@media (hover:none){.cur{display:none}}
+nav{display:flex;justify-content:space-between;align-items:center;padding:14px 28px;font-family:'Fredoka',sans-serif;font-weight:600;font-size:1.05rem}
+nav a{text-decoration:none;padding:2px 10px;color:var(--k);transition:color .25s,text-shadow .25s}
+nav a:hover{color:#fff;text-shadow:0 0 3px rgba(112,82,205,.95),0 1px 8px rgba(112,82,205,.85)}
+h1{text-align:center;font-family:'Fredoka',sans-serif;font-weight:600;font-size:clamp(2.4rem,8vw,4.4rem);color:#fff;text-shadow:0 5px 0 rgba(150,120,225,.5),0 12px 26px rgba(112,82,205,.35);margin:30px 0 24px}
+.card{width:min(440px,calc(100vw - 32px));margin:0 auto 60px;background:#fff;border-radius:28px;box-shadow:0 14px 40px rgba(112,82,205,.18);padding:26px 26px 30px}
+.tabs{display:flex;gap:8px;margin-bottom:20px}
+.tab{flex:1;border:2px solid var(--k);background:none;border-radius:99px;padding:6px 0;font:600 1rem 'Fredoka','Noto Sans KR',sans-serif;color:var(--k);transition:color .25s,border-color .25s}
+.tab:hover,.tab[aria-selected=true]{color:var(--lav3);border-color:var(--lav3)}
+label.l{display:block;margin:14px 0 4px;font-size:.88rem;font-weight:700}
+.hint{font-size:.8rem;color:var(--g3);margin-top:3px}
+input[type=text],input[type=password],select{width:100%;border:2px solid #ddd;border-radius:14px;padding:9px 12px;font:inherit;background:#fff;transition:border-color .2s}
+input:focus,select:focus{outline:none;border-color:var(--lav2)}
+.bd{display:flex;gap:8px}
+.bd select{flex:1;padding:9px 6px}
+.pad{position:relative;width:210px;height:210px;margin:6px auto 0;touch-action:none;user-select:none;-webkit-user-select:none}
+.pad svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.dot{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#f1edfb;border:2px solid #d9cff6;transition:background .15s,transform .15s}
+.dot.on{background:var(--lav);border-color:var(--lav2);transform:scale(1.12)}
+.padmsg{text-align:center;font-size:.85rem;color:var(--g3);min-height:1.4em;margin-top:6px}
+.padmsg.ok{color:var(--lav3)}
+.warn{display:none;margin-top:8px;padding:9px 12px;border-radius:12px;background:#f3f0fb;color:#4a3a8a;font-size:.88rem;font-weight:700}
+.warn.show{display:block}
+.chk{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:.88rem}
+.chk input{margin-top:5px;accent-color:var(--lav3)}
+.go{display:block;width:100%;margin-top:22px;border:2px solid var(--k);background:none;border-radius:99px;padding:8px 0;font:600 1.05rem 'Fredoka','Noto Sans KR',sans-serif;color:var(--k);transition:color .25s,border-color .25s}
+.go:hover:not(:disabled){color:var(--lav3);border-color:var(--lav3)}
+.go:disabled{opacity:.35}
+.msg{margin-top:14px;text-align:center;font-size:.9rem;min-height:1.4em}
+.msg.err{color:#b3261e}.msg.ok{color:var(--lav3);font-weight:700}
+.prev{display:none;margin-bottom:16px;padding:9px 12px;border-radius:12px;background:#f3f0fb;color:#4a3a8a;font-size:.82rem}
+.prev.show{display:block}
+.pane[hidden]{display:none}
+.done{text-align:center;padding:10px 0}
+.done b{font-size:1.2rem}
+</style>
+</head>
+<body>
+<div class="cur" id="cur"></div>
+<nav><a href="index.html">SAMMCO</a><div><a href="games.html">Web</a></div></nav>
+<h1>PLAYER</h1>
+<div class="card">
+  <div class="prev" id="prev">미리보기 모드 — 서버(Supabase)가 아직 연결되지 않아 화면과 입력 규칙만 확인할 수 있습니다. 실제 저장은 되지 않습니다.</div>
+
+  <div id="forms">
+    <div class="tabs" role="tablist">
+      <button class="tab" id="tLogin" role="tab" aria-selected="true">로그인</button>
+      <button class="tab" id="tJoin" role="tab" aria-selected="false">가입</button>
+    </div>
+
+    <label class="l" for="nick">닉네임</label>
+    <input type="text" id="nick" maxlength="12" autocomplete="username" autocapitalize="off" spellcheck="false">
+    <div class="hint" id="nickHint" hidden>영어 알파벳만, 3~12자</div>
+
+    <label class="l" for="pin">숫자 6자리</label>
+    <input type="password" id="pin" inputmode="numeric" maxlength="6" autocomplete="off" pattern="[0-9]*">
+    <div id="pinWrap" hidden>
+      <label class="l" for="pin2">숫자 6자리 확인</label>
+      <input type="password" id="pin2" inputmode="numeric" maxlength="6" autocomplete="off">
+    </div>
+
+    <label class="l">패턴 (3×3, 4점 이상)</label>
+    <div class="pad" id="pad"><svg id="svg"></svg></div>
+    <div class="padmsg" id="padmsg"></div>
+
+    <div id="joinOnly" hidden>
+      <label class="l">생년월일</label>
+      <div class="bd">
+        <select id="by" aria-label="년"></select>
+        <select id="bm" aria-label="월"></select>
+        <select id="bdd" aria-label="일"></select>
+      </div>
+      <div class="warn" id="warn">만 14세 미만은 가입할 수 없습니다.</div>
+
+      <label class="chk"><input type="checkbox" id="c1"><span>(필수) 만 14세 이상입니다.</span></label>
+      <label class="chk"><input type="checkbox" id="c2"><span>(필수) <a href="terms.html" target="_blank">이용약관</a>에 동의합니다.</span></label>
+      <label class="chk"><input type="checkbox" id="c3"><span>(필수) <a href="privacy.html" target="_blank">개인정보 처리방침</a>에 동의합니다. (닉네임·생년월일 수집)</span></label>
+    </div>
+
+    <button class="go" id="go" disabled>로그인</button>
+    <div class="msg" id="msg" role="status"></div>
+  </div>
+
+  <div class="done" id="done" hidden>
+    <p><b id="who"></b>님, 로그인되었습니다.</p>
+    <a class="go" href="games.html" style="text-decoration:none;text-align:center">게임하러 가기</a>
+    <button class="go" id="out">로그아웃</button>
+  </div>
+</div>
+
+<script src="player-config.js"></script>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var CFG=window.SAMMCO_PLAYER||{},LIVE=!!(CFG.url&&CFG.anonKey),sb=null,mode='login';
+
+/* ---------- 패턴 입력 ---------- */
+var pad=$('pad'),svg=$('svg'),dots=[],cur=[],drawing=false,pat1=null,pat='';
+var PX=[35,105,175];
+for(var i=0;i<9;i++){var d=document.createElement('div');d.className='dot';d.style.left=PX[i%3]+'px';d.style.top=PX[(i/3)|0]+'px';pad.appendChild(d);dots.push(d)}
+function pos(i){return [PX[i%3],PX[(i/3)|0]]}
+function draw(px,py){
+  var s='';
+  if(cur.length){var p=pos(cur[0]);var pts=cur.map(function(i){return pos(i).join(',')});
+    if(px!=null)pts.push(px+','+py);
+    s='<polyline points="'+pts.join(' ')+'" fill="none" stroke="#a98bea" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>'}
+  svg.innerHTML=s;
+  dots.forEach(function(el,i){el.classList.toggle('on',cur.indexOf(i)>-1)});
+}
+function hit(x,y){for(var i=0;i<9;i++){var p=pos(i);if(Math.hypot(x-p[0],y-p[1])<30)return i}return -1}
+function xy(e){var r=pad.getBoundingClientRect();return [(e.clientX-r.left)*210/r.width,(e.clientY-r.top)*210/r.height]}
+function add(x,y){var h=hit(x,y);if(h>-1&&cur.indexOf(h)<0)cur.push(h)}
+pad.addEventListener('pointerdown',function(e){e.preventDefault();pad.setPointerCapture(e.pointerId);drawing=true;cur=[];var p=xy(e);add(p[0],p[1]);draw(p[0],p[1])});
+pad.addEventListener('pointermove',function(e){if(!drawing)return;var p=xy(e);add(p[0],p[1]);draw(p[0],p[1])});
+function end(){if(!drawing)return;drawing=false;draw();finishPattern()}
+pad.addEventListener('pointerup',end);pad.addEventListener('pointercancel',end);
+function padMsg(t,ok){$('padmsg').textContent=t;$('padmsg').className='padmsg'+(ok?' ok':'')}
+function resetPattern(){cur=[];pat1=null;pat='';draw();padMsg('')}
+function finishPattern(){
+  var s=cur.map(function(i){return i+1}).join('');
+  if(cur.length<4){pat='';padMsg('4점 이상 이어주세요.');setTimeout(function(){cur=[];draw()},500);check();return}
+  if(mode==='join'){
+    if(!pat1){pat1=s;pat='';padMsg('확인을 위해 한 번 더 그려주세요.');setTimeout(function(){cur=[];draw()},400)}
+    else if(pat1===s){pat=s;padMsg('패턴이 입력되었습니다.',true)}
+    else{pat1=null;pat='';padMsg('두 패턴이 달라요. 처음부터 다시 그려주세요.');setTimeout(function(){cur=[];draw()},600)}
+  }else{pat=s;padMsg('패턴이 입력되었습니다.',true)}
+  check();
+}
+
+/* ---------- 생일 ---------- */
+var by=$('by'),bm=$('bm'),bd=$('bdd'),now=new Date();
+function opt(sel,ph,from,to,desc){var h='<option value="">'+ph+'</option>';
+  if(desc){for(var i=from;i>=to;i--)h+='<option>'+i+'</option>'}else{for(var j=from;j<=to;j++)h+='<option>'+j+'</option>'}
+  sel.innerHTML=h}
+opt(by,'년',now.getFullYear(),1920,true);opt(bm,'월',1,12);opt(bd,'일',1,31);
+function bday(){var y=+by.value,m=+bm.value,d=+bd.value;if(!y||!m||!d)return null;
+  var dt=new Date(y,m-1,d);if(dt.getMonth()!==m-1)return null;
+  return y+'-'+('0'+m).slice(-2)+'-'+('0'+d).slice(-2)}
+function under14(){var y=+by.value,m=+bm.value,d=+bd.value;if(!y||!m||!d)return false;
+  var t=new Date(now.getFullYear()-14,now.getMonth(),now.getDate());return new Date(y,m-1,d)>t}
+
+/* ---------- 폼 상태 ---------- */
+var NICK=/^[A-Za-z]{3,12}$/,PIN=/^[0-9]{6}$/;
+function check(){
+  var ok=NICK.test($('nick').value)&&PIN.test($('pin').value)&&pat.length>=4;
+  if(mode==='join'){
+    var u=under14();$('warn').classList.toggle('show',u);
+    ok=ok&&$('pin').value===$('pin2').value&&!!bday()&&!u&&$('c1').checked&&$('c2').checked&&$('c3').checked;
+  }
+  $('go').disabled=!ok;
+}
+['nick','pin','pin2','by','bm','bdd','c1','c2','c3'].forEach(function(i){$(i).addEventListener('input',check);$(i).addEventListener('change',check)});
+['pin','pin2'].forEach(function(i){$(i).addEventListener('input',function(){this.value=this.value.replace(/\D/g,'')})});
+$('nick').addEventListener('input',function(){this.value=this.value.replace(/[^A-Za-z]/g,'')});
+
+function setMode(m){
+  mode=m;$('tLogin').setAttribute('aria-selected',m==='login');$('tJoin').setAttribute('aria-selected',m==='join');
+  $('joinOnly').hidden=$('pinWrap').hidden=$('nickHint').hidden=(m!=='join');
+  $('go').textContent=m==='join'?'가입하기':'로그인';
+  $('msg').textContent='';$('msg').className='msg';resetPattern();check();
+}
+$('tLogin').onclick=function(){setMode('login')};$('tJoin').onclick=function(){setMode('join')};
+
+/* ---------- 서버 ---------- */
+function email(n){return n.toLowerCase()+'@p.sammco.store'}
+function pw(){return $('pin').value+'-'+pat}   // 숫자6 + 패턴을 합친 비밀번호
+function say(t,c){$('msg').textContent=t;$('msg').className='msg '+(c||'')}
+function friendly(err){
+  var m=(err&&err.message||'')+'';
+  if(/UNDER_AGE/.test(m))return '만 14세 미만은 가입할 수 없습니다.';
+  if(/INVALID/.test(m))return '입력 형식이 올바르지 않습니다.';
+  if(/already|registered|Database error/i.test(m))return '이미 사용 중인 닉네임이거나 가입 조건에 맞지 않습니다.';
+  if(/Invalid login/i.test(m))return '닉네임 또는 비밀번호(숫자+패턴)가 맞지 않습니다.';
+  if(/rate|too many/i.test(m))return '시도가 너무 많습니다. 잠시 후 다시 해주세요.';
+  return '처리 중 문제가 생겼습니다. 잠시 후 다시 시도해주세요.';
+}
+function showDone(n){$('forms').hidden=true;$('done').hidden=false;$('who').textContent=n}
+$('go').onclick=async function(){
+  if(this.disabled)return;
+  var n=$('nick').value;this.disabled=true;say('처리 중…');
+  if(!LIVE){
+    say(mode==='join'?'미리보기: 모든 조건이 통과되었습니다. (저장되지 않음)':'미리보기: 입력 형식이 올바릅니다. (로그인되지 않음)','ok');
+    this.disabled=false;return;
+  }
+  try{
+    var r;
+    if(mode==='join'){
+      r=await sb.auth.signUp({email:email(n),password:pw(),options:{data:{nickname:n,birthday:bday()}}});
+      if(!r.error&&!r.data.session)r=await sb.auth.signInWithPassword({email:email(n),password:pw()});
+    }else r=await sb.auth.signInWithPassword({email:email(n),password:pw()});
+    if(r.error){say(friendly(r.error),'err');this.disabled=false;return}
+    var prof=await sb.from('profiles').select('nickname').eq('id',r.data.user.id).maybeSingle();
+    showDone((prof.data&&prof.data.nickname)||n);
+  }catch(e){say(friendly(e),'err');this.disabled=false}
+};
+$('out').onclick=async function(){if(sb)await sb.auth.signOut();location.reload()};
+
+if(!LIVE)$('prev').classList.add('show');
+else{
+  var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
+  s.onload=async function(){sb=window.supabase.createClient(CFG.url,CFG.anonKey);
+    var r=await sb.auth.getSession();if(r.data.session){var p=await sb.from('profiles').select('nickname').eq('id',r.data.session.user.id).maybeSingle();showDone(p.data?p.data.nickname:'')}};
+  s.onerror=function(){say('서버 연결 스크립트를 불러오지 못했습니다.','err')};
+  document.head.appendChild(s);
+}
+setMode('login');
+
+/* ---------- 커서 ---------- */
+var c=$('cur');
+addEventListener('pointermove',function(e){c.style.transform='translate('+e.clientX+'px,'+e.clientY+'px)';
+  c.classList.toggle('hov',!!e.target.closest('a,button,label,.pad'))});
+})();
+</script>
+</body>
+</html>
