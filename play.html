@@ -160,6 +160,11 @@ body.rotate #rotate{display:flex}
 
   var rp=String(game.ratio||'16/9').split('/'),R=(+rp[0])/(+rp[1]);
   if(!(R>0.2&&R<5))R=16/9;
+  /* 도트 게임: base 가 있으면 화면 크기를 기준 해상도의 정수 배(2배, 3배…)로 맞춰서 도트가 흐려지지 않게 해요.
+     정수 2배도 못 채우는 작은 화면에서는 그냥 비율대로 늘려요. */
+  var bs=String(game.base||'').match(/^(\d+)\s*[x×]\s*(\d+)$/),BW=bs?+bs[1]:0;
+  if(bs)R=BW/(+bs[2]);
+  function snap(w){if(!BW)return w;var k=Math.floor(w/BW);return k>=2?k*BW:w}
   document.title=game.title+' | SAMMCO 삼코';
   document.getElementById('gtitle').textContent=game.title;
   document.getElementById('gdesc').textContent=game.desc||'';
@@ -235,14 +240,15 @@ body.rotate #rotate{display:flex}
   function layout(){
     var m=mode(),vw=vpW(),vh=vpH(),bez,gw,gh,ads=false;
     if(m==='phoneland'){
-      bez=0;gw=Math.min(vw,vh*R);gh=gw/R;
+      bez=0;gw=snap(Math.min(vw,vh*R));gh=gw/R;
     }else if(m==='phoneport'){
-      bez=6;gw=Math.min(vw-12-2*bez-2,(vh-84-2*bez)*R);gh=gw/R;
+      bez=6;gw=snap(Math.min(vw-12-2*bez-2,(vh-84-2*bez)*R));gh=gw/R;
     }else{
       bez=26;
       var availH=vh-84-110-2*bez-2,gwAds=vw-666;
       ads=want&&gwAds>=600;
       gw=Math.min(ads?gwAds:vw-26-2*bez,1100,availH*R);
+      gw=snap(gw);
       if(gw<280)gw=Math.min(280,vw-26-2*bez);
       gh=gw/R;
     }
