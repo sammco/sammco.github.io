@@ -18,13 +18,13 @@ window.SAMMCO_SITE = {
 
 window.SAMMCO_GAMES = [
   {
-    id: 'demo',
-    title: '샘플 게임',
-    desc: '화면 틀을 확인하기 위한 샘플이에요. 실제 게임을 올리면 이 줄을 교체하세요.',
-    url: 'games/demo/index.html',
+    id: 'candy-match',
+    title: 'Candy Match',
+    desc: '같은 사탕을 맞춰서 터뜨리는 퍼즐 게임',
+    url: 'games/candy-match/index.html',
     ratio: '16/9',
     orientation: 'landscape',
-    thumb: '',
+    thumb: 'games/candy-match/thumb.png',
     needsLogin: false
   }
 ];
