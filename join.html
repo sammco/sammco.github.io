@@ -101,7 +101,7 @@ input:focus,select:focus{outline:none;border-color:var(--lav2)}
 
   <div class="done" id="done" hidden>
     <p><b id="who"></b>님, 로그인되었습니다.</p>
-    <a class="go" href="games.html" style="text-decoration:none;text-align:center">게임하러 가기</a>
+    <a class="go" id="goLink" href="games.html" style="text-decoration:none;text-align:center">게임하러 가기</a>
     <button class="go" id="out">로그아웃</button>
   </div>
 </div>
@@ -192,6 +192,8 @@ function friendly(err){
   if(/rate|too many/i.test(m))return '시도가 너무 많습니다. 잠시 후 다시 해주세요.';
   return '처리 중 문제가 생겼습니다. 잠시 후 다시 시도해주세요.';
 }
+var nx=new URLSearchParams(location.search).get('next');
+if(nx&&/^[A-Za-z0-9_.\-]+(\?[A-Za-z0-9_=&%.\-]*)?$/.test(nx))$('goLink').href=nx;   /* 같은 사이트 안의 주소만 허용 */
 function showDone(n){$('forms').hidden=true;$('done').hidden=false;$('who').textContent=n}
 $('go').onclick=async function(){
   if(this.disabled)return;

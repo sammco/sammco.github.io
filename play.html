@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+<script src="sammco-guard.js"></script>
 <style>
 :root{
   --k:#111;--g3:#8a8a8a;--lav:#cdbcf5;--lav2:#a98bea;
@@ -46,14 +47,22 @@ body.adprev .ad .box{display:flex}
 .monitor{display:flex;flex-direction:column;align-items:center;min-width:0}
 /* 스킨은 .frame의 색이나 그림만 바꾸고, 바깥 두께(--bezel)는 바꾸지 않아요 */
 .frame{background:#e9e9ee;border:1px solid #cfcfd6;padding:var(--bezel);border-radius:calc(var(--bezel) * .8);box-shadow:0 18px 44px rgba(112,82,205,.22)}
-.screen{width:var(--gw);height:var(--gh);background:#111;border-radius:8px;overflow:hidden}
+.screen{position:relative;width:var(--gw);height:var(--gh);background:#111;border-radius:8px;overflow:hidden}
+.gate{position:absolute;inset:0;z-index:2;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px;background:linear-gradient(#cdbcf5,#e6dcfa);color:var(--k)}
+.gate.show{display:flex}
+.gate b{font-size:1.15rem}.gate span{font-size:.9rem;color:#444}
+.gate .pill{margin-top:6px;text-decoration:none}
+.savebar{display:none;align-items:center;justify-content:center;gap:12px;margin-top:12px;font-size:.88rem;color:#666}
+.savebar.show{display:flex}
+.savebar .pill{margin:0;padding:3px 20px;font-size:.95rem}
+.savebar .pill:disabled{opacity:.4}
 .screen iframe{display:block;width:100%;height:100%;border:0;background:#111}
 .info{text-align:center;margin-top:20px;max-width:640px}
 .info h1{font-size:1.5rem;letter-spacing:-.02em;line-height:1.3}
 .info p{margin-top:4px;color:#666;font-size:.95rem}
 
 /* 휴대폰 가로: 게임이 화면을 채워요 */
-body[data-mode=phoneland] nav,body[data-mode=phoneland] .info{display:none}
+body[data-mode=phoneland] nav,body[data-mode=phoneland] .info,body[data-mode=phoneland] .savebar{display:none}
 body[data-mode=phoneland] .hero{padding:0}
 body[data-mode=phoneland] .frame{padding:0;border:0;border-radius:0;background:none;box-shadow:none}
 body[data-mode=phoneland] .screen{border-radius:0}
@@ -108,10 +117,11 @@ body.rotate #rotate{display:flex}
     <div class="spacer"></div>
     <div class="monitor">
       <div class="frame" id="frame">
-        <div class="screen" id="screen"><iframe id="game" title="게임 화면" allow="fullscreen; autoplay; gamepad; accelerometer" allowfullscreen></iframe></div>
+        <div class="screen" id="screen"><div class="gate" id="gate"><b id="gateT"></b><span id="gateS"></span><a class="pill" id="gateA" href="join.html">로그인 / 가입</a></div><iframe id="game" title="게임 화면" allow="fullscreen; autoplay; gamepad; accelerometer" allowfullscreen></iframe></div>
       </div>
       
       <div class="info"><h1 id="gtitle"></h1><p id="gdesc"></p></div>
+      <div class="savebar" id="savebar"><button class="pill" id="saveBtn" type="button">저장</button><span id="saveSt"></span></div>
     </div>
     <div class="spacer"></div>
     <aside class="ad" id="adR" aria-label="광고"><div class="box">광고 영역<br>160 × 600</div></aside>
@@ -133,6 +143,8 @@ body.rotate #rotate{display:flex}
 </div>
 
 <script src="games-data.js"></script>
+<script src="player-config.js"></script>
+<script src="sammco-save.js"></script>
 <script>
 (function(){
   var GAMES=window.SAMMCO_GAMES||[],SITE=window.SAMMCO_SITE||{},qs=new URLSearchParams(location.search);
@@ -151,7 +163,59 @@ body.rotate #rotate{display:flex}
   document.title=game.title+' | SAMMCO 삼코';
   document.getElementById('gtitle').textContent=game.title;
   document.getElementById('gdesc').textContent=game.desc||'';
-  document.getElementById('game').src=game.url;
+
+  /* ── 로그인 / 저장 연결 ── */
+  var S=window.SAMMCO_SAVE,frame=document.getElementById('game'),gate=document.getElementById('gate');
+  var logged=false,sessionP=Promise.resolve(null);
+  function startGame(){frame.src=game.url}
+  function showGate(t,sub,link){
+    document.getElementById('gateT').textContent=t;document.getElementById('gateS').textContent=sub;
+    var a=document.getElementById('gateA');a.style.display=link?'':'none';
+    if(link)a.href='join.html?next='+encodeURIComponent('play.html?g='+game.id);
+    gate.classList.add('show');
+  }
+  function post(o){try{frame.contentWindow.postMessage(o,location.origin==='null'?'*':location.origin)}catch(e){}}
+  if(!S.live){
+    if(game.needsLogin)showGate('이 게임은 로그인이 필요해요','서버 연결 전이라 아직 실행할 수 없어요.',false);else startGame();
+  }else{
+    sessionP=new Promise(function(res){
+      var sc=document.createElement('script');
+      sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
+      sc.onload=function(){var C=window.SAMMCO_PLAYER;S.attach(window.supabase.createClient(C.url,C.anonKey));S.session().then(res,function(){res(null)})};
+      sc.onerror=function(){res(null)};document.head.appendChild(sc);
+    }).then(function(sess){
+      logged=!!sess;
+      if(game.needsLogin&&!logged)showGate('이 게임은 로그인이 필요해요','닉네임으로 로그인하면 바로 시작할 수 있어요.',true);else startGame();
+      if(logged)document.getElementById('savebar').classList.add('show');
+      return sess;
+    });
+  }
+  /* 게임 ↔ 사이트 대화: 게임이 {sammco:'ready'} 를 보내면 저장 데이터를 주고, {sammco:'save',data} 를 받으면 저장 대기열에 올려요 */
+  addEventListener('message',function(e){
+    if(e.origin!==location.origin||e.source!==frame.contentWindow)return;
+    var m=e.data;if(!m||typeof m!=='object')return;
+    if(m.sammco==='ready'){
+      sessionP.then(function(sess){
+        if(!sess){post({sammco:'load',loggedIn:false,data:null,offlineSeconds:0});return}
+        S.load(game.id).then(function(r){post({sammco:'load',loggedIn:true,data:r.data,offlineSeconds:r.offlineSeconds});S.start()},
+          function(){post({sammco:'load',loggedIn:false,data:null,offlineSeconds:0})});
+      });
+    }else if(m.sammco==='save'&&logged){S.setData(m.data)}
+  });
+  var saveSt=document.getElementById('saveSt'),saveBtn=document.getElementById('saveBtn');
+  function hm(d){return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
+  S.onStatus(function(s){
+    if(s.kind==='error')saveSt.textContent='저장에 실패했어요. 잠시 후 다시 시도할게요.';
+    else if(s.kind==='saved'&&s.ok)saveSt.textContent='마지막 저장 '+hm(s.at);
+  });
+  saveBtn.addEventListener('click',function(){
+    if(saveBtn.disabled)return;
+    S.saveNow().then(function(r){
+      if(r&&r.unchanged)saveSt.textContent='변경된 내용이 없어요';
+      else if(r&&r.wait)saveSt.textContent='잠시 후 다시 눌러주세요';
+      saveBtn.disabled=true;setTimeout(function(){saveBtn.disabled=false},10000);
+    });
+  });
 
   var adPrev=qs.get('ads')==='preview',want=!!SITE.ads||adPrev;
 

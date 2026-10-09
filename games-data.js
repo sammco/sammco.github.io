@@ -9,6 +9,7 @@
    ratio       화면 비율 가로/세로 (예: '16/9', '4/3', '9/16') → 모니터 틀이 이 비율에 맞춰 늘어나요
    orientation 'landscape' 가로 전용 / 'portrait' 세로 전용 / 'any' 둘 다
    thumb       대표 이미지 경로 (비워두면 구름 모양 기본 이미지)
+   needsLogin  true 로 하면 로그인한 사람만 실행할 수 있어요 (연동되는 게임은 true 권장)
 ─────────────────────────────────────────────── */
 window.SAMMCO_SITE = {
   ads: false   // AdSense 승인이 나면 true로 바꾸세요 (양옆 광고 칸이 켜져요)
@@ -22,6 +23,7 @@ window.SAMMCO_GAMES = [
     url: 'games/demo/index.html',
     ratio: '16/9',
     orientation: 'landscape',
-    thumb: ''
+    thumb: '',
+    needsLogin: false
   }
 ];
