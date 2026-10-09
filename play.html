@@ -169,9 +169,12 @@ body.toport .phone{animation-name:turnback}
   if(bs)R=BW/(+bs[2]);
   function snap(w){if(!BW)return w;var k=Math.floor(w/BW);return k>=2?k*BW:w}
   /* 화면 방향: 'landscape' 가로 전용 / 'portrait' 세로 전용 / 그 외(비워두면) 'any' 둘 다 가능
-     둘 다 가능한 게임(도트 기준 해상도가 없는 경우)은 휴대폰에서 화면을 꽉 채워요. 돌려달라는 안내도 안 떠요. */
+     둘 다 가능한 게임(도트 기준 해상도가 없는 경우)은 고정 비율 없이 창·휴대폰 화면 모양을 그대로 따라가요.
+     (PC 창을 세로로 줄이면 세로, 넓히면 가로 / 휴대폰을 돌리면 그 방향으로) 돌려달라는 안내도 안 떠요. */
   var ORI=game.orientation==='landscape'||game.orientation==='portrait'?game.orientation:'any';
   var FLEX=ORI==='any'&&!BW;
+  /* 로그인 필요: games-data.js 에서 needsLogin:false 라고 적은 게임만 로그인 없이 실행돼요 (기본은 로그인 필요) */
+  var NEED_LOGIN=game.needsLogin!==false;
   document.title=game.title+' | SAMMCO 삼코';
   document.getElementById('gtitle').textContent=game.title;
   document.getElementById('gdesc').textContent=game.desc||'';
@@ -188,13 +191,13 @@ body.toport .phone{animation-name:turnback}
   }
   function post(o){try{frame.contentWindow.postMessage(o,location.origin==='null'?'*':location.origin)}catch(e){}}
   if(!S.live){
-    if(game.needsLogin)showGate('이 게임은 로그인이 필요해요','서버 연결 전이라 아직 실행할 수 없어요.',false);else startGame();
+    if(NEED_LOGIN)showGate('이 게임은 로그인이 필요해요','서버 연결 전이라 아직 실행할 수 없어요.',false);else startGame();
   }else{
     sessionP=window.SAMMCO_ACCOUNT.client().then(function(sb){
       if(!sb)return null;S.attach(sb);return S.session().catch(function(){return null});
     }).then(function(sess){
       logged=!!sess;
-      if(game.needsLogin&&!logged)showGate('이 게임은 로그인이 필요해요','닉네임으로 로그인하면 바로 시작할 수 있어요.',true);else startGame();
+      if(NEED_LOGIN&&!logged)showGate('이 게임은 로그인이 필요해요','닉네임으로 로그인하면 바로 시작할 수 있어요.',true);else startGame();
       if(logged)document.getElementById('savebar').classList.add('show');
       return sess;
     });
@@ -254,10 +257,16 @@ body.toport .phone{animation-name:turnback}
       bez=26;
       var availH=vh-84-110-2*bez-2,gwAds=vw-666;
       ads=want&&gwAds>=600;
-      gw=Math.min(ads?gwAds:vw-26-2*bez,1100,availH*R);
-      gw=snap(gw);
-      if(gw<280)gw=Math.min(280,vw-26-2*bez);
-      gh=gw/R;
+      if(FLEX){
+        /* 둘 다 가능한 게임: 창 모양 그대로 채워요. 창을 세로로 길게 하면 세로, 가로로 넓히면 가로 비율이 돼요 */
+        gw=Math.max(Math.min(280,vw-26-2*bez),Math.min(ads?gwAds:vw-26-2*bez,1400));
+        gh=Math.max(240,availH);
+      }else{
+        gw=Math.min(ads?gwAds:vw-26-2*bez,1100,availH*R);
+        gw=snap(gw);
+        if(gw<280)gw=Math.min(280,vw-26-2*bez);
+        gh=gw/R;
+      }
     }
     root.style.setProperty('--bezel',bez+'px');
     root.style.setProperty('--gw',Math.floor(gw)+'px');
