@@ -4,6 +4,6 @@
    - anon key는 공개돼도 되는 키입니다. (service_role 키는 절대 넣지 마세요!)
    - 직원용(staff) 프로젝트와는 별개의 프로젝트를 쓰는 걸 전제로 합니다. */
 window.SAMMCO_PLAYER = {
-  url: '',      // 예: 'https://abcdxyz.supabase.co'
-  anonKey: ''   // 예: 'eyJhbGciOi...'
+  url: 'https://bayqnhmrnvfxgdlkrlee.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJheXFuaG1ybnZmeGdkbGtybGVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTMyMTIsImV4cCI6MjEwNzA2OTIxMn0.fxcjBOpKow8fMq9p7fI9ivM2YLFgs_6HSejbvE1nPgA'
 };
