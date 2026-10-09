@@ -221,7 +221,7 @@ footer p{margin-top:10px;color:#555;font-size:.95rem}
     cur.classList.toggle('scat',e.clientX>r.left-40&&e.clientX<r.right+40&&e.clientY>r.top-30&&e.clientY<r.bottom+30);
   });
   document.querySelectorAll('a').forEach(function(el){
-    if(el.closest('nav')||el.classList.contains('row')||el.id==='mail')return;
+    if(el.closest('nav')||el.classList.contains('row')||el.id==='mail'||el.classList.contains('made'))return;
     el.addEventListener('mouseenter',function(){overLink=true;cur.classList.add('hov')});
     el.addEventListener('mouseleave',function(){overLink=false;cur.classList.remove('hov')});
   });
