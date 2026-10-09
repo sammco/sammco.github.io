@@ -96,6 +96,8 @@ body:not([data-mode=phoneland]) #up{display:none}
 body.rotate #rotate{display:flex}
 .phone{width:46px;height:78px;border:4px solid var(--k);border-radius:10px;background:#fff;animation:turn 2.6s ease-in-out infinite}
 @keyframes turn{0%,25%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+body.toport .phone{animation-name:turnback}
+@keyframes turnback{0%,25%{transform:rotate(-90deg)}60%,100%{transform:rotate(0)}}
 #rotate b{font-size:1.25rem}
 #rotate span{color:#444;font-size:.95rem}
 
@@ -107,7 +109,7 @@ body.rotate #rotate{display:flex}
 
 <nav>
   <a href="index.html">SAMMCO</a>
-  <div><a href="index.html">Home</a><a href="games.html">Web</a><a href="lab.html">Lab</a></div>
+  <div><a href="index.html">Home</a><a href="games.html">Web</a><a href="lab.html">Lab</a><span id="acct"></span></div>
 </nav>
 
 <header class="hero" id="hero">
@@ -138,12 +140,13 @@ body.rotate #rotate{display:flex}
 
 <div id="rotate" role="alert">
   <div class="phone"></div>
-  <b>화면을 가로로 돌려주세요</b>
-  <span>이 게임은 가로 화면에서 실행돼요.</span>
+  <b id="rotT">화면을 가로로 돌려주세요</b>
+  <span id="rotS">이 게임은 가로 화면에서 실행돼요.</span>
 </div>
 
 <script src="games-data.js"></script>
 <script src="player-config.js"></script>
+<script src="sammco-account.js"></script>
 <script src="sammco-save.js"></script>
 <script>
 (function(){
@@ -165,6 +168,10 @@ body.rotate #rotate{display:flex}
   var bs=String(game.base||'').match(/^(\d+)\s*[x×]\s*(\d+)$/),BW=bs?+bs[1]:0;
   if(bs)R=BW/(+bs[2]);
   function snap(w){if(!BW)return w;var k=Math.floor(w/BW);return k>=2?k*BW:w}
+  /* 화면 방향: 'landscape' 가로 전용 / 'portrait' 세로 전용 / 그 외(비워두면) 'any' 둘 다 가능
+     둘 다 가능한 게임(도트 기준 해상도가 없는 경우)은 휴대폰에서 화면을 꽉 채워요. 돌려달라는 안내도 안 떠요. */
+  var ORI=game.orientation==='landscape'||game.orientation==='portrait'?game.orientation:'any';
+  var FLEX=ORI==='any'&&!BW;
   document.title=game.title+' | SAMMCO 삼코';
   document.getElementById('gtitle').textContent=game.title;
   document.getElementById('gdesc').textContent=game.desc||'';
@@ -183,11 +190,8 @@ body.rotate #rotate{display:flex}
   if(!S.live){
     if(game.needsLogin)showGate('이 게임은 로그인이 필요해요','서버 연결 전이라 아직 실행할 수 없어요.',false);else startGame();
   }else{
-    sessionP=new Promise(function(res){
-      var sc=document.createElement('script');
-      sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
-      sc.onload=function(){var C=window.SAMMCO_PLAYER;S.attach(window.supabase.createClient(C.url,C.anonKey));S.session().then(res,function(){res(null)})};
-      sc.onerror=function(){res(null)};document.head.appendChild(sc);
+    sessionP=window.SAMMCO_ACCOUNT.client().then(function(sb){
+      if(!sb)return null;S.attach(sb);return S.session().catch(function(){return null});
     }).then(function(sess){
       logged=!!sess;
       if(game.needsLogin&&!logged)showGate('이 게임은 로그인이 필요해요','닉네임으로 로그인하면 바로 시작할 수 있어요.',true);else startGame();
@@ -240,9 +244,12 @@ body.rotate #rotate{display:flex}
   function layout(){
     var m=mode(),vw=vpW(),vh=vpH(),bez,gw,gh,ads=false;
     if(m==='phoneland'){
-      bez=0;gw=snap(Math.min(vw,vh*R));gh=gw/R;
+      bez=0;
+      if(FLEX){gw=vw;gh=vh}else{gw=snap(Math.min(vw,vh*R));gh=gw/R}
     }else if(m==='phoneport'){
-      bez=6;gw=snap(Math.min(vw-12-2*bez-2,(vh-84-2*bez)*R));gh=gw/R;
+      bez=6;
+      if(FLEX){gw=vw-12-2*bez-2;gh=Math.max(240,vh-84-2*bez)}
+      else{gw=snap(Math.min(vw-12-2*bez-2,(vh-84-2*bez)*R));gh=gw/R}
     }else{
       bez=26;
       var availH=vh-84-110-2*bez-2,gwAds=vw-666;
@@ -258,7 +265,13 @@ body.rotate #rotate{display:flex}
     body.dataset.mode=m;
     body.classList.toggle('ads',ads);
     body.classList.toggle('adprev',ads&&adPrev);
-    body.classList.toggle('rotate',m==='phoneport'&&game.orientation==='landscape');
+    var needLand=m==='phoneport'&&ORI==='landscape',needPort=m==='phoneland'&&ORI==='portrait';
+    if(needLand||needPort){
+      document.getElementById('rotT').textContent=needLand?'화면을 가로로 돌려주세요':'화면을 세로로 돌려주세요';
+      document.getElementById('rotS').textContent=needLand?'이 게임은 가로 화면에서 실행돼요.':'이 게임은 세로 화면에서 실행돼요.';
+      body.classList.toggle('toport',needPort);
+    }
+    body.classList.toggle('rotate',needLand||needPort);
     onScroll();
   }
   function onScroll(){down.classList.toggle('show',body.dataset.mode==='phoneland'&&scrollY<30)}
