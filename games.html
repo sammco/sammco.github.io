@@ -63,7 +63,7 @@ footer a:hover{color:var(--lav2)}
 <script src="sammco-account.js"></script>
 <script>
 (function(){
-  var G=window.SAMMCO_GAMES||[],grid=document.getElementById('grid');
+  var G=(window.SAMMCO_GAMES||[]).filter(function(g){return g.section!=='lab'}),grid=document.getElementById('grid');   /* 연구중(lab) 게임은 Lab 페이지에만 */
   if(!G.length){grid.innerHTML='<p style="grid-column:1/-1;text-align:center;color:#666">곧 게임이 올라와요.</p>';return}
   G.forEach(function(g){
     var a=document.createElement('article');a.className='card';

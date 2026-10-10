@@ -286,7 +286,7 @@ body.toport .phone{animation-name:turnback}
   function onScroll(){down.classList.toggle('show',body.dataset.mode==='phoneland'&&scrollY<30)}
 
   /* 다른 게임 목록 (대표 이미지 카드만 보여주고, 누르면 그 게임이 열려요) */
-  var others=GAMES.filter(function(g){return g!==game}),cards=document.getElementById('cards');
+  var others=GAMES.filter(function(g){return g!==game&&g.section!=='lab'}),cards=document.getElementById('cards');
   if(!others.length){
     cards.innerHTML='<p class="soon">곧 더 많은 게임이 올라와요.</p>';
   }else others.forEach(function(g){
