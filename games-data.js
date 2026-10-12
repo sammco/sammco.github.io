@@ -6,10 +6,12 @@
    title       게임 이름
    desc        한 줄 소개
    url         게임 폴더의 index.html 경로 (예: 'games/게임이름/index.html')
+               비워두면 플레이 없이 앨범에 "준비 중" 디스크로만 나와요 (연구중 소개용)
    ratio       화면 비율 가로/세로 (예: '16/9', '4/3', '9/16') → 가로 전용·세로 전용·도트 게임만 이 비율로 고정돼요
                (orientation 'any' 게임은 창 모양을 그대로 따라가서 ratio 를 안 써요)
    orientation 'landscape' 가로 전용(휴대폰 세로면 돌려달라는 안내) / 'portrait' 세로 전용 / 'any' 둘 다 가능(안내 없음, 휴대폰 화면 꽉 채움)
-   thumb       대표 이미지 경로 (비워두면 구름 모양 기본 이미지)
+   thumb       대표 이미지 경로 (게임 화면 아래 '다른 게임' 카드에 쓰여요)
+   disc        앨범 CD 디스크 라벨 이미지 (정사각형, 가운데 구멍 자리는 비워두기). 비우면 thumb 가 인쇄돼요
    base        (도트 게임만) 기준 해상도 '320x180' → 화면이 이 크기의 정수 배로 커져서 도트가 선명해요. 도트가 아니면 비워두세요
    section     'lab' 으로 적으면 WEB 목록 대신 '연구중(Lab)' 페이지에 나와요 (비워두면 WEB 목록)
    labNote     (연구중 게임만) 소개 아래 작은 글씨 한 줄
@@ -28,6 +30,7 @@ window.SAMMCO_GAMES = [
     ratio: '16/9',
     orientation: 'any',
     thumb: 'games/candy-match/thumb.png',
+    disc: 'discs/candy-match.jpg',
     needsLogin: true
   },
   {
@@ -38,6 +41,7 @@ window.SAMMCO_GAMES = [
     ratio: '16/9',
     orientation: 'landscape',
     thumb: 'games/chicken-shop/thumb.png',
+    disc: 'discs/chicken-shop.jpg',
     needsLogin: true,
     section: 'lab',
     labNote: '2026 · 웹 시제품 · 로그인 후 플레이'

@@ -150,7 +150,7 @@ body.toport .phone{animation-name:turnback}
 <script src="sammco-save.js"></script>
 <script>
 (function(){
-  var GAMES=window.SAMMCO_GAMES||[],SITE=window.SAMMCO_SITE||{},qs=new URLSearchParams(location.search);
+  var GAMES=(window.SAMMCO_GAMES||[]).filter(function(g){return g.url}),SITE=window.SAMMCO_SITE||{},qs=new URLSearchParams(location.search);
   var game=GAMES.filter(function(g){return g.id===qs.get('g')})[0]||GAMES[0];
   var body=document.body,root=document.documentElement;
   var cur=document.getElementById('cur'),down=document.getElementById('down');

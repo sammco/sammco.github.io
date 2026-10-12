@@ -63,42 +63,16 @@ footer a:hover{color:var(--lav2)}
   <h1>연구중</h1>
   <p class="sub">개발 중인 게임들을 미리 만나보세요.</p>
 </header>
-<main class="list" id="labList">
-  <!-- 플레이할 수 있는 연구중 게임은 games-data.js 에서 section:'lab' 으로 등록하면 이 위에 자동으로 나와요.
-       아래는 직접 적는 소개용 칸이에요. 프로젝트 하나 = article 하나. 복사해서 이름, 소개만 바꾸세요. 자동으로 좌우가 번갈아 배치돼요.
-       이미지를 넣으려면 <div class="thumb"></div> 안에 <img src="이미지파일.png" alt=""> 를 넣으세요. -->
-  <article class="item">
-    <div class="thumb"></div>
-    <div><span class="tag">연구중</span><h2>프로젝트 이름</h2><p>연구 중인 게임에 대한 소개를 여기에 적어주세요.</p><small>2026 / 엔진, 장르 등</small></div>
-  </article>
-  <article class="item">
-    <div class="thumb"></div>
-    <div><span class="tag">연구중</span><h2>프로젝트 이름</h2><p>연구 중인 게임에 대한 소개를 여기에 적어주세요.</p><small>2026 / 엔진, 장르 등</small></div>
-  </article>
-  <article class="item">
-    <div class="thumb"></div>
-    <div><span class="tag">연구중</span><h2>프로젝트 이름</h2><p>연구 중인 게임에 대한 소개를 여기에 적어주세요.</p><small>2026 / 엔진, 장르 등</small></div>
-  </article>
-</main>
+<main id="album" aria-label="연구중 게임 앨범"></main>
+<!-- 연구중 게임은 games-data.js 에서 section:'lab' 으로 등록하면 이 앨범에 나와요.
+     아직 플레이 파일이 없는 소개용 프로젝트는 url 을 비워두면 "준비 중" 디스크로 나와요. -->
 <footer><a href="index.html">SAMMCO 홈으로</a><br>© 2026 SAMMCO 삼코</footer>
 <script src="games-data.js"></script>
 <script src="player-config.js"></script>
 <script src="sammco-account.js"></script>
+<script src="sammco-album.js"></script>
 <script>
-(function(){
-  /* games-data.js 에서 section:'lab' 인 게임을 맨 위에 카드로 넣어요 */
-  var L=(window.SAMMCO_GAMES||[]).filter(function(g){return g.section==='lab'}),list=document.getElementById('labList');
-  L.slice().reverse().forEach(function(g){
-    var a=document.createElement('article');a.className='item';
-    a.innerHTML='<div class="thumb"></div><div><span class="tag">연구중</span><h2></h2><p></p><small></small><a class="pill">PLAY</a></div>';
-    a.querySelector('h2').textContent=g.title;
-    a.querySelector('p').textContent=g.desc||'';
-    var sm=a.querySelector('small');if(g.labNote)sm.textContent=g.labNote;else sm.remove();
-    a.querySelector('.pill').href='play.html?g='+encodeURIComponent(g.id);
-    if(g.thumb){var im=document.createElement('img');im.alt='';im.src=g.thumb;a.querySelector('.thumb').appendChild(im)}
-    list.insertBefore(a,list.firstElementChild);
-  });
-})();
+SAMMCO_ALBUM(document.getElementById('album'),(window.SAMMCO_GAMES||[]).filter(function(g){return g.section==='lab'}),{tag:'연구중',empty:'연구 중인 게임이 곧 올라와요.'});
 </script>
 <script>
 (function(){
