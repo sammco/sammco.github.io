@@ -2,7 +2,8 @@
    SAMMCO 게임 앨범 (WEB 게임 · 연구중 페이지 공용) — 3D CD 케이스
    - 투명 CD 케이스(뒷판·옆면·경첩·뚜껑) 안의 디스크에 게임별 라벨(disc, 없으면 thumb)이 인쇄돼요.
    - 옆으로 밀기(휴대폰) · 끌기 · ‹ › 화살표 · 키보드 ← → 로 다음 게임
-   - 가운데 케이스를 마우스로 끌면 케이스가 돌아가요.
+   - 케이스는 정면을 봐요. 넘긴 직후엔 정면, 멈춰 두면 마우스 커서를 따라 살짝 기울어요. (2026-10-15 결정)
+   - 옆 케이스는 어둡게 (구분만 될 정도)
    - 케이스(또는 PLAY)를 누르면 뚜껑이 열리고 게임이 시작돼요. 디스크는 돌지 않아요. (누를 때 연출은 아직 미정 — 지금 동작 유지)
    - url 이 없는 게임은 "준비 중" 디스크로만 나와요 (열리지 않음)
    사용: SAMMCO_ALBUM(넣을 곳, 게임 목록, {tag:'연구중', sheen:'rainbow'|'silver'})
@@ -14,8 +15,9 @@
     'padding:40px calc(50% - var(--w)/2) 30px;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}'+
   '.album .track::-webkit-scrollbar{display:none}'+
   '.album .track.drag{scroll-snap-type:none;user-select:none}'+
-  '.album .slide{flex:0 0 var(--w);scroll-snap-align:center;text-align:center;transition:opacity .45s}'+
-  '.album .slide:not(.on){opacity:.5}'+
+  '.album .slide{flex:0 0 var(--w);scroll-snap-align:center;text-align:center}'+
+  '.album .stage{transition:filter .45s}'+
+  '.album .slide:not(.on) .stage{filter:brightness(.2) saturate(.55)}'+
   /* 3D 무대 */
   '.album .stage{position:relative;width:var(--w);height:var(--w);perspective:calc(var(--w)*3.2);touch-action:pan-x pan-y;cursor:pointer;outline:none}'+
   '.album .stage:focus-visible .lid{box-shadow:0 0 0 3px #a98bea}'+
@@ -26,9 +28,6 @@
   '.album .obj.live{transition:none}'+
   '.album .f{position:absolute;backface-visibility:visible}'+
   '.album .sway{position:absolute;inset:0;transform-style:preserve-3d}'+
-  '.album .slide.on:not(.open) .sway{animation:sammcoSway 7s ease-in-out infinite alternate}'+
-  '.album .stage.held .sway{animation-play-state:paused}'+
-  '@keyframes sammcoSway{from{transform:rotateY(-7deg) rotateX(2deg)}to{transform:rotateY(7deg) rotateX(-2deg)}}'+
   /* 뒷판 */
   '.album .back{inset:0;border-radius:6px;transform:translateZ(calc(var(--d)/-2));'+
     'background:linear-gradient(150deg,rgba(255,255,255,.42),rgba(232,226,250,.22) 60%,rgba(255,255,255,.36));'+
@@ -98,7 +97,7 @@
   '.album .dots button.on{background:#9f7ae6;border-color:#9f7ae6}'+
   '.album.one .nav,.album.one .dots{display:none}'+
   '.album .empty{text-align:center;color:#666;padding:40px 20px}'+
-  '@media(prefers-reduced-motion:reduce){.album .obj,.album .lid{transition:none}.album .spin,.album .sway{animation:none!important}}';
+  '@media(prefers-reduced-motion:reduce){.album .obj,.album .lid{transition:none}.album .spin{animation:none!important}}';
 
   function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
   var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -114,7 +113,7 @@
 
     games.forEach(function(g,i){
       var play=g.url?'play.html?g='+encodeURIComponent(g.id):null;
-      var s=el('div','slide'+(play?'':' soon')+(g.discFx==='nacre'?' nacre':''));s._play=play;s._u={rx:-12,ry:-22};
+      var s=el('div','slide'+(play?'':' soon')+(g.discFx==='nacre'?' nacre':''));s._play=play;s._u={rx:0,ry:0};s._f={x:0,y:0};
       var stage=el('div','stage');stage.tabIndex=0;stage.setAttribute('role',play?'button':'img');
       stage.setAttribute('aria-label',play?g.title+' — 눌러서 케이스를 열고 플레이':g.title+' (준비 중)');
       var obj=el('div','obj');
@@ -134,7 +133,7 @@
       if(g.desc)meta.appendChild(el('p','',g.desc));
       if(g.labNote)meta.appendChild(el('small','',g.labNote));
       if(play){var a=el('a','pill','PLAY');a.href=play;a.addEventListener('click',function(e){e.preventDefault();open(i)});meta.appendChild(a);
-        meta.appendChild(el('span','hint',matchMedia('(hover:hover)').matches?'케이스를 끌면 돌아가요 · 누르면 열려요':'케이스를 누르면 열려요'))}
+        meta.appendChild(el('span','hint','케이스를 누르면 열려요'))}
       s.appendChild(stage);s.appendChild(meta);track.appendChild(s);slides.push(s);s._obj=obj;s._stage=stage;
       var d=el('button');d.type='button';d.setAttribute('aria-label',(i+1)+'번째 게임: '+g.title);
       d.addEventListener('click',function(){go(i)});dots.appendChild(d);
@@ -149,46 +148,62 @@
     var opening=false;
     function open(i){
       var s=slides[i];if(!s._play||opening)return;
-      opening=true;s._u.rx=-12;s._u.ry=-24;apply(s,0);s.classList.add('open');
+      opening=true;apply(s,0);s.classList.add('open');
       setTimeout(function(){location.href=s._play},reduce?0:900);
     }
     /* 뒤로 가기로 돌아오면 닫힌 상태로 */
-    addEventListener('pageshow',function(){opening=false;slides.forEach(function(s){s.classList.remove('open');s._u.rx=-12;s._u.ry=-22});layout()});
+    addEventListener('pageshow',function(){opening=false;slides.forEach(function(s){s.classList.remove('open')});layout()});
 
     var cur=-1;
     function center(i){var s=slides[i];return s.offsetLeft+s.offsetWidth/2-track.clientWidth/2}
     function go(i,instant){i=Math.max(0,Math.min(slides.length-1,i));track.scrollTo({left:center(i),behavior:instant?'auto':'smooth'})}
     function apply(s,off){
-      /* 가운데에서 멀어질수록 케이스가 돌아가고 작아져요 (넘길 때 입체감) */
-      var o=Math.max(-1.6,Math.min(1.6,off)),ry=s._u.ry-o*38,rx=s._u.rx,sc=1-Math.min(1,Math.abs(o))*.2;
+      /* 케이스는 정면. 가운데에서 멀어질수록 작아지기만 해요. 가운데 케이스는 커서를 따라 살짝 기울어요(s._f) */
+      var o=Math.max(-1.6,Math.min(1.6,off)),ry=s._u.ry+s._f.y,rx=s._u.rx+s._f.x,sc=1-Math.min(1,Math.abs(o))*.2;
       s._obj.style.setProperty('--ry',ry.toFixed(2)+'deg');s._obj.style.setProperty('--rx',rx.toFixed(2)+'deg');s._obj.style.setProperty('--sc',sc.toFixed(3));
       s._obj.style.setProperty('--sh',(ry*1.6).toFixed(1)+'deg');s._dirty=true;s._obj.style.setProperty('--gx',(50+ry*.9).toFixed(1)+'%');
     }
-    /* 자개 원판 빛: 케이스 각도(끌기·흔들림·넘기기)를 작업대의 "판 기울기"로 바꿔 매 순간 다시 그림
-       케이스 기본 자세(rx -12°, ry -22°)가 작업대에서 판이 반듯할 때와 같아요. 기울기 11° = 작업대 끝까지 */
-    function nacreLoop(t){
-      requestAnimationFrame(nacreLoop);if(document.hidden)return;
-      slides.forEach(function(s,i){
-        if(!s._nacre||!s._nacre.ready||Math.abs(i-cur)>1)return;
-        var on=i===cur;if(!on&&!s._dirty)return;s._dirty=false;
-        var ry=parseFloat(s._obj.style.getPropertyValue('--ry'))||0,rx=parseFloat(s._obj.style.getPropertyValue('--rx'))||0,swY=0,swX=0,rot=0;
-        try{if(on){var m=getComputedStyle(s._sway).transform;if(m&&m!=='none'){var M=new DOMMatrixReadOnly(m);swY=-Math.asin(Math.max(-1,Math.min(1,M.m13)))*57.3;swX=Math.asin(Math.max(-1,Math.min(1,M.m23)))*57.3}}
-          var sm=getComputedStyle(s._spin).transform;if(sm&&sm!=='none'){var Q=new DOMMatrixReadOnly(sm);rot=Math.atan2(Q.m12,Q.m11)}}catch(e){}
-        var k=s._nacre.tiltMax||11,cl=function(v){return Math.max(-1.4,Math.min(1.4,v))};
-        s._nacre.draw(cl((ry+swY+22)/k),cl(-(rx+swX+12)/k),rot,t/1000);
+    /* 커서 따라 기울기 — 넘기는 중·열리는 중에는 정면, 멈춘 뒤 STILL ms 가 지나면 커서 쪽으로 살짝 (최대 8°)
+       값은 앨범 작업대에서 사용자가 정한 값(2026-10-15 19:44): 멈춤 인정 300ms · 회전 최대 8° · 옆 케이스 어둡기 80%
+       마우스가 있는 기기에서만. 휴대폰(커서 없음)은 정면 그대로 (휴대폰 회전은 아직 미정) */
+    var FOLLOW=matchMedia('(hover:hover) and (pointer:fine)').matches&&!reduce,STILL=300,MAXY=8,MAXX=8;
+    var mx=null,my=null,lastScroll=0;
+    addEventListener('pointermove',function(e){if(e.pointerType==='mouse'){mx=e.clientX;my=e.clientY}},{passive:true});
+    document.documentElement.addEventListener('mouseleave',function(){mx=my=null});
+    function offsetOf(s){return (s.offsetLeft+s.offsetWidth/2-(track.scrollLeft+track.clientWidth/2))/(s.offsetWidth||1)}
+    function tick(t){
+      requestAnimationFrame(tick);if(document.hidden)return;
+      var s=slides[cur];
+      if(s&&FOLLOW){
+        var tx=0,ty=0;
+        if(mx!=null&&!opening&&!mode&&performance.now()-lastScroll>STILL){
+          var r=s._stage.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+          var nx=Math.max(-1,Math.min(1,(mx-cx)/(innerWidth/2))),ny=Math.max(-1,Math.min(1,(my-cy)/(innerHeight/2)));
+          ty=nx*MAXY;tx=-ny*MAXX;
+        }
+        var k=(tx===0&&ty===0)?.18:.08,dy=ty-s._f.y,dx=tx-s._f.x;
+        if(Math.abs(dx)>.01||Math.abs(dy)>.01){s._f.x+=dx*k;s._f.y+=dy*k;s._obj.classList.add('live');apply(s,offsetOf(s))}
+      }
+      /* 자개 원판 빛: 케이스 각도를 작업대의 "판 기울기"로 바꿔 매 순간 다시 그림 (정면 = 작업대에서 판이 반듯할 때, 11° = 끝까지) */
+      slides.forEach(function(q,i){
+        if(!q._nacre||!q._nacre.ready||Math.abs(i-cur)>1)return;
+        var on=i===cur;if(!on&&!q._dirty)return;q._dirty=false;
+        var ry=parseFloat(q._obj.style.getPropertyValue('--ry'))||0,rx=parseFloat(q._obj.style.getPropertyValue('--rx'))||0,rot=0;
+        try{var sm=getComputedStyle(q._spin).transform;if(sm&&sm!=='none'){var Q=new DOMMatrixReadOnly(sm);rot=Math.atan2(Q.m12,Q.m11)}}catch(e){}
+        var kk=q._nacre.tiltMax||11,cl=function(v){return Math.max(-1.4,Math.min(1.4,v))};
+        q._nacre.draw(cl(ry/kk),cl(-rx/kk),rot,t/1000);
       });
     }
-    if(slides.some(function(s){return s._nacre}))requestAnimationFrame(nacreLoop);
     function layout(){
       var mid=track.scrollLeft+track.clientWidth/2,best=0,bd=1e9;
       slides.forEach(function(s,i){var c=s.offsetLeft+s.offsetWidth/2,d=c-mid;apply(s,d/(s.offsetWidth||1));if(Math.abs(d)<bd){bd=Math.abs(d);best=i}});
       if(best!==cur){cur=best;
-        slides.forEach(function(s,i){s.classList.toggle('on',i===cur);if(i!==cur&&!s.classList.contains('open')){s._u.rx=-12;s._u.ry=-22}});
+        slides.forEach(function(s,i){s.classList.toggle('on',i===cur);if(i!==cur){s._f.x=s._f.y=0}});
         Array.prototype.forEach.call(dots.children,function(d,i){d.classList.toggle('on',i===cur);d.setAttribute('aria-current',i===cur?'true':'false')});
         prev.disabled=cur===0;next.disabled=cur===slides.length-1;
       }
     }
-    var raf=0;track.addEventListener('scroll',function(){if(!raf)raf=requestAnimationFrame(function(){raf=0;slides.forEach(function(s){s._obj.classList.add('live')});layout()})},{passive:true});
+    var raf=0;track.addEventListener('scroll',function(){lastScroll=performance.now();if(!raf)raf=requestAnimationFrame(function(){raf=0;slides.forEach(function(s){s._obj.classList.add('live')});layout()})},{passive:true});
     var settle=0;track.addEventListener('scroll',function(){clearTimeout(settle);settle=setTimeout(function(){slides.forEach(function(s){s._obj.classList.remove('live')})},120)},{passive:true});
     prev.addEventListener('click',function(){go(cur-1)});
     next.addEventListener('click',function(){go(cur+1)});
@@ -197,29 +212,26 @@
       if(e.key==='ArrowLeft'){go(cur-1);e.preventDefault()}else if(e.key==='ArrowRight'){go(cur+1);e.preventDefault()}
     });
 
-    /* 마우스: 가운데 케이스 위에서 끌면 케이스 회전, 그 밖에서 끌면 앨범 넘기기 */
-    var mode=null,sx=0,sy=0,sl=0,base=null,spun=false,startI=0;
+    /* 마우스: 어디서 끌든 앨범 넘기기 (케이스는 커서를 따라 기울기만 해요) */
+    var mode=null,sx=0,sy=0,sl=0,spun=false,startI=0;
     track.addEventListener('pointerdown',function(e){
       if(e.pointerType!=='mouse'||e.button!==0||opening)return;
-      var s=slides[cur];sx=e.clientX;sy=e.clientY;spun=false;startI=cur;
-      if(s&&s._stage.contains(e.target)){mode='rot';base={rx:s._u.rx,ry:s._u.ry};s._stage.classList.add('held')}else{mode='scroll';sl=track.scrollLeft}
+      sx=e.clientX;sy=e.clientY;spun=false;startI=cur;mode='scroll';sl=track.scrollLeft;
     });
     addEventListener('pointermove',function(e){
       if(!mode)return;var dx=e.clientX-sx,dy=e.clientY-sy;
-      if(!spun&&Math.abs(dx)+Math.abs(dy)>6){spun=true;if(mode==='scroll')track.classList.add('drag');else slides[cur]._obj.classList.add('live')}
+      if(!spun&&Math.abs(dx)+Math.abs(dy)>6){spun=true;track.classList.add('drag')}
       if(!spun)return;e.preventDefault();
-      if(mode==='rot'){var s=slides[cur];s._u.ry=base.ry+dx*.45;s._u.rx=Math.max(-50,Math.min(40,base.rx-dy*.35));apply(s,0)}
-      else track.scrollLeft=sl-dx;
+      track.scrollLeft=sl-dx;
     });
     addEventListener('pointerup',function(e){
       if(!mode)return;var m=mode;mode=null;
-      if(m==='scroll'&&spun){var dx=e.clientX-sx,t=indexAt();track.classList.remove('drag');if(t===startI&&Math.abs(dx)>40)t=startI+(dx<0?1:-1);go(t)}
-      if(m==='rot'){slides[cur]._stage.classList.remove('held');if(spun)slides[cur]._obj.classList.remove('live')}
+      if(spun){var dx=e.clientX-sx,t=indexAt();track.classList.remove('drag');if(t===startI&&Math.abs(dx)>40)t=startI+(dx<0?1:-1);go(t)}
       setTimeout(function(){spun=false},60);
     });
     function indexAt(){var mid=track.scrollLeft+track.clientWidth/2,best=0,bd=1e9;slides.forEach(function(s,i){var d=Math.abs(s.offsetLeft+s.offsetWidth/2-mid);if(d<bd){bd=d;best=i}});return best}
     track.addEventListener('dragstart',function(e){e.preventDefault()});
     addEventListener('resize',function(){go(cur<0?0:cur,true);layout()});
-    layout();go(0,true);layout();
+    layout();go(0,true);layout();requestAnimationFrame(tick);
   };
 })();
