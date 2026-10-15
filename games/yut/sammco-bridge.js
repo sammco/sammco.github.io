@@ -42,7 +42,9 @@
     try{
       /* 게임 코드의 profile 을 계정 기록으로 교체 (기록이 없으면 처음 상태) */
       profile=Object.assign({bokdon:0,skins:['basic'],skin:'basic',augSeen:[],misSeen:{},synSeen:[]},saved||{});
-      fixSkins();
+      /* 말 목록 파일(skins/skins.js)이 안 불러와졌으면 정리하지 않아요.
+         정리하면 목록에 없는 말이 보유 목록에서 지워진 채 계정에 저장될 수 있어서예요. */
+      if(Array.isArray(window.YUT_SKINS)&&window.YUT_SKINS.length)fixSkins();
       /* 로비 안내 문구를 사이트 저장에 맞게 바꿔요 (브라우저에만 저장 → 계정에 저장) */
       var _rl=renderLobby;
       renderLobby=function(){_rl();var n=document.querySelector('#lobby .note');
