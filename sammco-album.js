@@ -3,7 +3,7 @@
    - 투명 CD 케이스(뒷판·옆면·경첩·뚜껑) 안의 디스크에 게임별 라벨(disc, 없으면 thumb)이 인쇄돼요.
    - 옆으로 밀기(휴대폰) · 끌기 · ‹ › 화살표 · 키보드 ← → 로 다음 게임
    - 가운데 케이스를 마우스로 끌면 케이스가 돌아가요.
-   - 케이스(또는 PLAY)를 누르면 뚜껑이 열리고 디스크가 돌면서 게임이 시작돼요.
+   - 케이스(또는 PLAY)를 누르면 뚜껑이 열리고 디스크가 돌면서 게임이 시작돼요. (자개 원판 디스크는 돌지 않아요)
    - url 이 없는 게임은 "준비 중" 디스크로만 나와요 (열리지 않음)
    사용: SAMMCO_ALBUM(넣을 곳, 게임 목록, {tag:'연구중', sheen:'rainbow'|'silver'})
 ─────────────────────────────────────────────── */
@@ -58,10 +58,16 @@
   '.album.rainbow .sheen{opacity:.5;background:conic-gradient(from 0deg,rgba(255,170,200,0) 0deg,rgba(255,170,200,.75) 25deg,rgba(255,230,150,.75) 45deg,rgba(160,240,200,.75) 65deg,'+
     'rgba(150,200,255,.75) 85deg,rgba(205,170,255,.75) 105deg,rgba(255,255,255,0) 135deg,rgba(255,255,255,0) 180deg,rgba(255,170,200,.7) 205deg,rgba(255,230,150,.7) 225deg,'+
     'rgba(160,240,200,.7) 245deg,rgba(150,200,255,.7) 265deg,rgba(205,170,255,.7) 285deg,rgba(255,255,255,0) 315deg)}'+
+  /* 자개 원판 (게임별 discFx:'nacre'): WebGL 로 그려요. WebGL 이 안 되는 기기에서는 원래 그림만 보여요 */
+  '.album .nacre .sheen{display:none}'+
+  '.album .ncv{position:absolute;left:2.4%;top:2.4%;width:95.2%;height:95.2%;border-radius:50%;display:block}'+
+  '.album .gl .label{visibility:hidden}'+
   '.album .hub{position:absolute;inset:0;border-radius:50%;pointer-events:none;'+
     'background:radial-gradient(circle,transparent 0 7%,rgba(255,255,255,.92) 7.4% 13%,rgba(150,140,180,.35) 13.3% 13.8%,rgba(255,255,255,.55) 14% 16.5%,rgba(0,0,0,.08) 16.8% 17.2%,transparent 17.5%)}'+
-  '.album .slide.open .spin{animation:sammcoSpin .7s cubic-bezier(.4,0,.2,1) infinite}'+
-  '@media (hover:hover){.album .slide.on:not(.open) .stage:hover .spin{animation:sammcoSpin 6s linear infinite}}'+
+  /* 뚜껑이 열릴 때 디스크가 빠르게 돎 — 자개 원판(윷놀이)은 돌지 않음 (2026-10-15 결정) */
+  '.album .slide.open:not(.nacre) .spin{animation:sammcoSpin .7s cubic-bezier(.4,0,.2,1) infinite}'+
+  /* 마우스를 올리면 디스크가 천천히 돎 — 자개 원판(윷놀이)은 멈춰 있고 빛만 반응 */
+  '@media (hover:hover){.album .slide.on:not(.open):not(.nacre) .stage:hover .spin{animation:sammcoSpin 6s linear infinite}}'+
   '@keyframes sammcoSpin{to{transform:rotate(360deg)}}'+
   /* 뚜껑 (왼쪽 경첩 기준으로 열림) */
   '.album .lid{inset:0;border-radius:6px;transform-origin:left center;transform:translateZ(calc(var(--d)/2)) rotateY(var(--lid,0deg));'+
@@ -112,7 +118,7 @@
 
     games.forEach(function(g,i){
       var play=g.url?'play.html?g='+encodeURIComponent(g.id):null;
-      var s=el('div','slide'+(play?'':' soon'));s._play=play;s._u={rx:-12,ry:-22};
+      var s=el('div','slide'+(play?'':' soon')+(g.discFx==='nacre'?' nacre':''));s._play=play;s._u={rx:-12,ry:-22};
       var stage=el('div','stage');stage.tabIndex=0;stage.setAttribute('role',play?'button':'img');
       stage.setAttribute('aria-label',play?g.title+' — 눌러서 케이스를 열고 플레이':g.title+' (준비 중)');
       var obj=el('div','obj');
@@ -121,8 +127,11 @@
       var art=g.disc||g.thumb;   /* 디스크 라벨: disc 이미지가 있으면 그것, 없으면 썸네일 */
       if(art)label.style.backgroundImage='url("'+String(art).replace(/"/g,'%22')+'")';
       spin.appendChild(label);spin.appendChild(el('div','sheen'));disc.appendChild(spin);disc.appendChild(el('div','hub'));
+      if(g.discFx==='nacre'&&art&&window.SAMMCO_NACRE){   /* 자개 조각 하나하나가 빛을 받는 디스크 (WebGL) */
+        var nr=null;try{nr=SAMMCO_NACRE.make(spin,art,function(){s.classList.add('gl');s._dirty=true})}catch(e){}
+        if(nr){s._nacre=nr;s._spin=spin}}
       obj.appendChild(disc);obj.appendChild(el('div','f lid'));
-      var sway=el('div','sway');sway.appendChild(obj);stage.appendChild(el('div','ground'));stage.appendChild(sway);
+      var sway=el('div','sway');s._sway=sway;sway.appendChild(obj);stage.appendChild(el('div','ground'));stage.appendChild(sway);
       var meta=el('div','meta');
       if(opt.tag||!play)meta.appendChild(el('span','tag',play?opt.tag:'준비 중'));
       meta.appendChild(el('h2','',g.title));
@@ -157,8 +166,23 @@
       /* 가운데에서 멀어질수록 케이스가 돌아가고 작아져요 (넘길 때 입체감) */
       var o=Math.max(-1.6,Math.min(1.6,off)),ry=s._u.ry-o*38,rx=s._u.rx,sc=1-Math.min(1,Math.abs(o))*.2;
       s._obj.style.setProperty('--ry',ry.toFixed(2)+'deg');s._obj.style.setProperty('--rx',rx.toFixed(2)+'deg');s._obj.style.setProperty('--sc',sc.toFixed(3));
-      s._obj.style.setProperty('--sh',(ry*1.6).toFixed(1)+'deg');s._obj.style.setProperty('--gx',(50+ry*.9).toFixed(1)+'%');
+      s._obj.style.setProperty('--sh',(ry*1.6).toFixed(1)+'deg');s._dirty=true;s._obj.style.setProperty('--gx',(50+ry*.9).toFixed(1)+'%');
     }
+    /* 자개 원판 빛: 케이스 각도(끌기·흔들림·넘기기)를 작업대의 "판 기울기"로 바꿔 매 순간 다시 그림
+       케이스 기본 자세(rx -12°, ry -22°)가 작업대에서 판이 반듯할 때와 같아요. 기울기 11° = 작업대 끝까지 */
+    function nacreLoop(t){
+      requestAnimationFrame(nacreLoop);if(document.hidden)return;
+      slides.forEach(function(s,i){
+        if(!s._nacre||!s._nacre.ready||Math.abs(i-cur)>1)return;
+        var on=i===cur;if(!on&&!s._dirty)return;s._dirty=false;
+        var ry=parseFloat(s._obj.style.getPropertyValue('--ry'))||0,rx=parseFloat(s._obj.style.getPropertyValue('--rx'))||0,swY=0,swX=0,rot=0;
+        try{if(on){var m=getComputedStyle(s._sway).transform;if(m&&m!=='none'){var M=new DOMMatrixReadOnly(m);swY=-Math.asin(Math.max(-1,Math.min(1,M.m13)))*57.3;swX=Math.asin(Math.max(-1,Math.min(1,M.m23)))*57.3}}
+          var sm=getComputedStyle(s._spin).transform;if(sm&&sm!=='none'){var Q=new DOMMatrixReadOnly(sm);rot=Math.atan2(Q.m12,Q.m11)}}catch(e){}
+        var k=s._nacre.tiltMax||11,cl=function(v){return Math.max(-1.4,Math.min(1.4,v))};
+        s._nacre.draw(cl((ry+swY+22)/k),cl(-(rx+swX+12)/k),rot,t/1000);
+      });
+    }
+    if(slides.some(function(s){return s._nacre}))requestAnimationFrame(nacreLoop);
     function layout(){
       var mid=track.scrollLeft+track.clientWidth/2,best=0,bd=1e9;
       slides.forEach(function(s,i){var c=s.offsetLeft+s.offsetWidth/2,d=c-mid;apply(s,d/(s.offsetWidth||1));if(Math.abs(d)<bd){bd=Math.abs(d);best=i}});

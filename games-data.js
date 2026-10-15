@@ -9,8 +9,10 @@
                비워두면 플레이 없이 앨범에 "준비 중" 디스크로만 나와요 (연구중 소개용)
    ratio       화면 비율 가로/세로 (예: '16/9', '4/3', '9/16') → 가로 전용·세로 전용·도트 게임만 이 비율로 고정돼요
                (orientation 'any' 게임은 창 모양을 그대로 따라가서 ratio 를 안 써요)
+   pcFlex      true 로 하면 컴퓨터에서는 창 모양 그대로 채우고 휴대폰은 orientation 방향만 (예: 윷놀이)
    orientation 'landscape' 가로 전용(휴대폰 세로면 돌려달라는 안내) / 'portrait' 세로 전용 / 'any' 둘 다 가능(안내 없음, 휴대폰 화면 꽉 채움)
    thumb       대표 이미지 경로 (게임 화면 아래 '다른 게임' 카드에 쓰여요)
+   discFx      'nacre' 로 하면 디스크를 "자개 은하 원판 작업대" 방식으로 그려요 (케이스 기울기 따라 자개 빛·별 반짝임). 지금은 윷놀이만
    disc        앨범 CD 디스크 라벨 이미지 (정사각형, 가운데 구멍 자리는 비워두기). 비우면 thumb 가 인쇄돼요
    base        (도트 게임만) 기준 해상도 '320x180' → 화면이 이 크기의 정수 배로 커져서 도트가 선명해요. 도트가 아니면 비워두세요
    section     'lab' 으로 적으면 WEB 목록 대신 '연구중(Lab)' 페이지에 나와요 (비워두면 WEB 목록)
@@ -45,5 +47,20 @@ window.SAMMCO_GAMES = [
     needsLogin: true,
     section: 'lab',
     labNote: '2026 · 웹 시제품 · 로그인 후 플레이'
+  },
+  {
+    id: 'yut',
+    title: '윷놀이',
+    desc: '복주머니를 모으는 웹 윷놀이',
+    url: 'games/yut/index.html',
+    ratio: '16/9',
+    orientation: 'landscape',
+    pcFlex: true,
+    thumb: 'games/yut/thumb.png',
+    disc: 'discs/yut.jpg',
+    discFx: 'nacre',
+    needsLogin: true,
+    section: 'lab',
+    labNote: '2026 · 웹 시제품 · 온라인 대전 준비 중'
   }
 ];

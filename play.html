@@ -173,6 +173,8 @@ body.toport .phone{animation-name:turnback}
      (PC 창을 세로로 줄이면 세로, 넓히면 가로 / 휴대폰을 돌리면 그 방향으로) 돌려달라는 안내도 안 떠요. */
   var ORI=game.orientation==='landscape'||game.orientation==='portrait'?game.orientation:'any';
   var FLEX=ORI==='any'&&!BW;
+  /* pcFlex:true → 컴퓨터에서는 창 모양 그대로 채우고, 휴대폰에서는 정해진 방향(orientation)만 */
+  var FLEXPC=(FLEX||!!game.pcFlex)&&!BW;
   /* 로그인 필요: games-data.js 에서 needsLogin:false 라고 적은 게임만 로그인 없이 실행돼요 (기본은 로그인 필요) */
   var NEED_LOGIN=game.needsLogin!==false;
   document.title=game.title+' | SAMMCO 삼코';
@@ -248,7 +250,7 @@ body.toport .phone{animation-name:turnback}
     var m=mode(),vw=vpW(),vh=vpH(),bez,gw,gh,ads=false;
     if(m==='phoneland'){
       bez=0;
-      if(FLEX){gw=vw;gh=vh}else{gw=snap(Math.min(vw,vh*R));gh=gw/R}
+      if(FLEXPC){gw=vw;gh=vh}else{gw=snap(Math.min(vw,vh*R));gh=gw/R}
     }else if(m==='phoneport'){
       bez=6;
       if(FLEX){gw=vw-12-2*bez-2;gh=Math.max(240,vh-84-2*bez)}
@@ -257,7 +259,7 @@ body.toport .phone{animation-name:turnback}
       bez=26;
       var availH=vh-84-110-2*bez-2,gwAds=vw-666;
       ads=want&&gwAds>=600;
-      if(FLEX){
+      if(FLEXPC){
         /* 둘 다 가능한 게임: 창 모양 그대로 채워요. 창을 세로로 길게 하면 세로, 가로로 넓히면 가로 비율이 돼요 */
         gw=Math.max(Math.min(280,vw-26-2*bez),Math.min(ads?gwAds:vw-26-2*bez,1400));
         gh=Math.max(240,availH);
